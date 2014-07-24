@@ -4,11 +4,11 @@
 
 #ifdef __OBJC__
     #import <Foundation/Foundation.h>
-    #import "DDLog.h"
 
-    #if DEBUG
-    static const int ddLogLevel = LOG_LEVEL_VERBOSE;
-    #else
-    static const int ddLogLevel = LOG_LEVEL_WARN;
-    #endif
+    // Redefine logging macros now that we've removed Lumberjack.
+    #define DDLogVerbose(...) NSLog(__VA_ARGS__)
+    #define DDLogWarn(...) NSLog(__VA_ARGS__)
+    #define DDLogCWarn(...) NSLog(__VA_ARGS__)
+    #define DDLogError(...) NSLog(__VA_ARGS__)
+    #define DDLogInfo(...) NSLog(__VA_ARGS__)
 #endif

@@ -7,14 +7,11 @@
 //
 
 #import "SVGKit.h"
-#import "DDTTYLogger.h"
-#import "DDASLLogger.h"
 
 @implementation SVGKit : NSObject
 
 + (void) enableLogging {
-    [DDLog addLogger:[DDASLLogger sharedInstance]];
-    [DDLog addLogger:[DDTTYLogger sharedInstance]];
+    // Does nothing now that Lumberjack has been removed.
 }
 
 @end
