@@ -14,7 +14,7 @@
  wsp:
  (#x20 | #x9 | #xD | #xA)
  */
-+ (NSCharacterSet *)SVGWhitespaceCharacterSet;
++ (NSCharacterSet *)SVGWhitespaceCharacterSet
 {
 	static NSCharacterSet *sWhitespaceCharacterSet = nil;
     static dispatch_once_t onceToken;

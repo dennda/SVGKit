@@ -196,12 +196,31 @@ inline BOOL SVGCurveEqualToCurve(SVGCurve curve1, SVGCurve curve2)
  */
 + (void) readWhitespace:(NSScanner*)scanner
 {
-	DDLogVerbose(@"Apple's implementation of scanCharactersFromSet seems to generate large amounts of temporary objects and can cause a crash here by taking literally megabytes of RAM in temporary internal variables. This is surprising, but I can't see anythign we're doing wrong. Adding this autoreleasepool drops memory usage (inside Apple's methods!) massively, so it seems to be the right thing to do");
-	@autoreleasepool
-	{
-		[scanner scanCharactersFromSet:[NSCharacterSet SVGWhitespaceCharacterSet]
-                        intoString:NULL];
-	}
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        DDLogVerbose(@"Apple's implementation of scanCharactersFromSet seems to generate large amounts of temporary objects and can cause a crash here by taking literally megabytes of RAM in temporary internal variables. This is surprising, but I can't see anythign we're doing wrong. Adding this autoreleasepool drops memory usage (inside Apple's methods!) massively, so it seems to be the right thing to do");
+    });
+    @autoreleasepool
+    {
+        // XXX Duolingo Note:
+        //
+        // There's a category method on NSCharacterSet specified by SVGKit that gets you the following whitespace character set.
+        // However, when bridging the code to Swift there's a runtime crash where the framework attempts to access that category method
+        // internally, can't find it, thus producing a crash. I'm unsure as to the exact cause of this problem, but I'm just inlining
+        // the method here as a workaround for the time being. I'll file a bug with Apple.
+        // (PS: I *thought* the root cause was a trailing semicolon after the method signature in the category implementation, but
+        // removing that, cleaning, and re-running still causes the same problem.)
+        static NSCharacterSet *sWhitespaceCharacterSet = nil;
+        static dispatch_once_t onceToken;
+        dispatch_once(&onceToken, ^{
+            DDLogVerbose(@"Allocating static NSCharacterSet containing whitespace characters. Should be small, but Apple seems to take up 5+ megabytes each time?");
+            sWhitespaceCharacterSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"%c%c%c%c", 0x20, 0x9, 0xD, 0xA]];
+            [sWhitespaceCharacterSet retain]; // required, this is a non-ARC project.
+        });
+
+        [scanner scanCharactersFromSet:sWhitespaceCharacterSet
+                            intoString:NULL];
+    }
 }
 
 + (void) readCommaAndWhitespace:(NSScanner*)scanner
